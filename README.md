@@ -8,7 +8,7 @@ Uma célula de carga posicionada sob a garrafa de água detecta a variação de 
 A ideia partiu de uma motivação pessoal de desenvolvimento de algum dispositivo de wellness ou de segurança pessoal para uso próprio. Antes da ideia final, algumas possibilidades foram levantadas:
 1. Sensor que envia notificação quando a porta for aberta, gerando alertas urgentes em horários críticos -> descartada por pesquisa de mercado, onde foram encontrados diversos dispositivos semelhantes e com integrações mais completas (como Alexa e Google Home). Foi recomendado pelo professor a realização uma pesquisa sobre a área da domótica, que, em uma validação do mercado, foi possível identificar que não haveria muito espaço para "ideias inovadoras" de baixo custo.
 2. Medidor e regulador de stress -> descartada por conta da complexidade de desenvolvimento e calibração do dispositivo wearable dentro do tempo da disciplina. Também foi conferido que alguns smartwatches já possuem funcionalidades parecidas integradas.
-3. Botão de emergência para carro que envia localização para contatos de emergências -> descartada em uma conversa com um uber que já possuia um dispositivo com propósito parecido e bem mais completo em termos de funcionalidade.
+3. Botão de emergência para carro que envia localização para contatos de emergências -> descartada em uma conversa com um Uber que já possuia um dispositivo com propósito parecido e bem mais completo em termos de funcionalidade.
 
 ### Concepção da ideia
 Após o insucesso das ideias anteriores, surgiu a ideia de um dispositivo que acompanha a ingestão de água, também por conta de uma motivação pessoal e insatisfação com os aplicativos existentes para esse fim, onde é necessário cadastrar manualmente a quantidade de água ingerida, gerando dificuldades de aderência ao uso.
@@ -17,8 +17,11 @@ O dispositivo desenvolvido ficaria acomplado à base da garrafa para acompanhame
 
 Em pesquisa de mercado foram encontradas garrafas inteiras com esse mecanismo à preço bastante elevado, e o [Ulla](https://www.ulla.io), um gadget simples que detecta o movimento da garrafa para criar alertas e não se conecta com nenhum sistema. A proposta do dispositivo a ser desenvolvido, então, se diferencia ao possibilitar o acoplamento a qualquer garrafa através de uma base removível, além da integração com o aplicativo.
 
+[imagem 1]
 
 ## Componentes utilizados
+[imagem 2]
+
 ### Dispositivo
 * Placa microcontroladora ESP32-C3 Super Mini OLED Display de 0.42''
 * 4 Jumpers Macho-Macho
@@ -38,7 +41,6 @@ Em pesquisa de mercado foram encontradas garrafas inteiras com esse mecanismo à
 | Vermelho        | E+    |
 | Preto           | E−    |
 | Branco          | A+    |
-
 
 ### Materiais complementares
 * Protoboard (para testes iniciais)
@@ -82,5 +84,9 @@ Frontend em React para acompanhamento do consumo e configuração pelo usuário.
 - [ ] Desenvolver algoritmos de medição da variação de peso da garrafa e envio de lembretes para API
 - [ ] Soldar componentes
 - [ ] Acoplar dispositivo à base de silicone da garrafa
+- [ ] Adicionar maior detalhamento da intgração dispositivo-API-frontend na documentação
+- [ ] Definir formato de transporte do dispositivo na não soldado (partes soltas) para apresentação em aula (tópico importante pois foi o que impossibilitou a demonstração na aula de 01/07, como mostra a imagem abaixo)
+
+[imagem 3]
 
 > Possivelmente existem passos intermediários que serão melhor elaborados conforme o avanço do desenvolvimento
