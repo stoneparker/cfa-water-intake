@@ -85,7 +85,7 @@ Frontend em React para acompanhamento do consumo e configuração pelo usuário.
 - [ ] Soldar componentes
 - [ ] Acoplar dispositivo à base de silicone da garrafa
 - [ ] Adicionar maior detalhamento da intgração dispositivo-API-frontend na documentação
-- [ ] Definir formato de transporte do dispositivo na não soldado (partes soltas) para apresentação em aula (tópico importante pois foi o que impossibilitou a demonstração na aula de 01/07, como mostra a imagem abaixo)
+- [ ] Definir formato de transporte do dispositivo não soldado para apresentação em aula (tópico importante pois foi o que impossibilitou a demonstração na aula de 01/07, como mostra a imagem abaixo)
 
 [imagem 3]
 
