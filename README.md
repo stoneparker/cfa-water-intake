@@ -17,10 +17,11 @@ O dispositivo desenvolvido ficaria acomplado à base da garrafa para acompanhame
 
 Em pesquisa de mercado foram encontradas garrafas inteiras com esse mecanismo à preço bastante elevado, e o [Ulla](https://www.ulla.io), um gadget simples que detecta o movimento da garrafa para criar alertas e não se conecta com nenhum sistema. A proposta do dispositivo a ser desenvolvido, então, se diferencia ao possibilitar o acoplamento a qualquer garrafa através de uma base removível, além da integração com o aplicativo.
 
-[imagem 1]
+<img width="1012" height="927" alt="photo_2026-07-08_08-43-26" src="https://github.com/user-attachments/assets/83020b5a-d50e-44c6-866c-25c9050d9312" />
+
 
 ## Componentes utilizados
-[imagem 2]
+<img width="1280" height="721" alt="photo_2026-07-08_08-43-05" src="https://github.com/user-attachments/assets/caa22635-5c42-435e-922f-93c0be681b8c" />
 
 ### Dispositivo
 * Placa microcontroladora ESP32-C3 Super Mini OLED Display de 0.42''
@@ -41,6 +42,8 @@ Em pesquisa de mercado foram encontradas garrafas inteiras com esse mecanismo à
 | Vermelho        | E+    |
 | Preto           | E−    |
 | Branco          | A+    |
+
+<img width="2560" height="1441" alt="photo_2026-07-08_08-42-58" src="https://github.com/user-attachments/assets/227b0e9d-c2b0-43bd-90a1-b880e04233d8" />
 
 ### Materiais complementares
 * Protoboard (para testes iniciais)
@@ -87,6 +90,6 @@ Frontend em React para acompanhamento do consumo e configuração pelo usuário.
 - [ ] Adicionar maior detalhamento da intgração dispositivo-API-frontend na documentação
 - [ ] Definir formato de transporte do dispositivo não soldado para apresentação em aula (tópico importante pois foi o que impossibilitou a demonstração na aula de 01/07, como mostra a imagem abaixo)
 
-[imagem 3]
+<img width="721" height="1280" alt="photo_2026-07-08_08-43-05 (2)" src="https://github.com/user-attachments/assets/fb58dddf-faee-48fe-9b8c-97fb03b2c468" />
 
 > Possivelmente existem passos intermediários que serão melhor elaborados conforme o avanço do desenvolvimento
