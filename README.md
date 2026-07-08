@@ -88,8 +88,6 @@ Frontend em React para acompanhamento do consumo e configuração pelo usuário.
 - [ ] Soldar componentes
 - [ ] Acoplar dispositivo à base de silicone da garrafa
 - [ ] Adicionar maior detalhamento da intgração dispositivo-API-frontend na documentação
-- [ ] Definir formato de transporte do dispositivo não soldado para apresentação em aula (tópico importante pois foi o que impossibilitou a demonstração na aula de 01/07, como mostra a imagem abaixo)
-
-<img width="721" height="1280" alt="photo_2026-07-08_08-43-05 (2)" src="https://github.com/user-attachments/assets/fb58dddf-faee-48fe-9b8c-97fb03b2c468" />
+- [ ] Definir formato de "alimentação móvel" (baterias ou powerbanks)
 
 > Possivelmente existem passos intermediários que serão melhor elaborados conforme o avanço do desenvolvimento
