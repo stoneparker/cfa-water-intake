@@ -82,12 +82,14 @@ Frontend em React para acompanhamento do consumo e configuração pelo usuário.
 
 ## Próximos passos
 - [ ] Criar endpoints na API para definição e retorno do tamanho da garrafa
-- [ ] Finalizar desenvolvimento do front-end
+- [ ] Desenvolvimento da interface do front-end
 - [ ] Consertar erros de integração entre o ESP32 e HX711
 - [ ] Desenvolver algoritmos de medição da variação de peso da garrafa e envio de lembretes para API
 - [ ] Soldar componentes
 - [ ] Acoplar dispositivo à base de silicone da garrafa
-- [ ] Adicionar maior detalhamento da intgração dispositivo-API-frontend na documentação
+- [ ] Adicionar maior detalhamento da integração dispositivo-API-frontend na documentação
 - [ ] Definir formato de "alimentação móvel" (baterias ou powerbanks)
+- [ ] Criar servidor de socket.io na API para envio de lembretes ao front-end
+- [ ] Imprimir id do dispositivo no display para associação no front-end
 
 > Possivelmente existem passos intermediários que serão melhor elaborados conforme o avanço do desenvolvimento
