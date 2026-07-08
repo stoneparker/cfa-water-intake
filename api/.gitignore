@@ -1,2 +1,4 @@
 .env
-data/**
+package-lock.json
+data
+node_modules
