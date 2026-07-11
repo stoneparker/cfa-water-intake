@@ -34,8 +34,8 @@ Em pesquisa de mercado foram encontradas garrafas inteiras com esse mecanismo à
 |-------|----------|
 | VCC   | 3V       |
 | GND   | GD       |
-| DT    | GPIO 4   |
-| SCK   | GPIO 5   |
+| DT    | GPIO 0   |
+| SCK   | GPIO 1   |
 
 | Célula de carga | HX711 |
 |-----------------|-------|
