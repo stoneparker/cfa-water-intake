@@ -34,8 +34,8 @@ Em pesquisa de mercado foram encontradas garrafas inteiras com esse mecanismo à
 |-------|----------|
 | VCC   | 3V       |
 | GND   | GD       |
-| DT    | GPIO 4   |
-| SCK   | GPIO 5   |
+| DT    | GPIO 0   |
+| SCK   | GPIO 1   |
 
 | Célula de carga | HX711 |
 |-----------------|-------|
@@ -82,14 +82,14 @@ Frontend em React para acompanhamento do consumo e configuração pelo usuário.
 
 ## Próximos passos
 - [ ] Criar endpoints na API para definição e retorno do tamanho da garrafa
-- [ ] Finalizar desenvolvimento do front-end
+- [ ] Desenvolvimento da interface do front-end
 - [ ] Consertar erros de integração entre o ESP32 e HX711
 - [ ] Desenvolver algoritmos de medição da variação de peso da garrafa e envio de lembretes para API
 - [ ] Soldar componentes
 - [ ] Acoplar dispositivo à base de silicone da garrafa
-- [ ] Adicionar maior detalhamento da intgração dispositivo-API-frontend na documentação
-- [ ] Definir formato de transporte do dispositivo não soldado para apresentação em aula (tópico importante pois foi o que impossibilitou a demonstração na aula de 01/07, como mostra a imagem abaixo)
-
-<img width="721" height="1280" alt="photo_2026-07-08_08-43-05 (2)" src="https://github.com/user-attachments/assets/fb58dddf-faee-48fe-9b8c-97fb03b2c468" />
+- [ ] Adicionar maior detalhamento da integração dispositivo-API-frontend na documentação
+- [ ] Definir formato de "alimentação móvel" (baterias ou powerbanks)
+- [ ] Criar servidor de socket.io na API para envio de lembretes ao front-end
+- [ ] Imprimir id do dispositivo no display para associação no front-end
 
 > Possivelmente existem passos intermediários que serão melhor elaborados conforme o avanço do desenvolvimento
