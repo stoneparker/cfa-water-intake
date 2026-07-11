@@ -1,5 +1,7 @@
 const { getDb, persist } = require('../models/db');
 
+const DEFAULT_GOAL_ML = Number(process.env.DAILY_GOAL_ML || 2000);
+
 // ─── helpers ───────────────────────────────────────────────────────────────
 
 /** Executa SELECT e retorna array de objetos */
@@ -21,51 +23,92 @@ function run(sql, params = []) {
   return { lastInsertRowid: rowid, changes };
 }
 
-// ─── Meta diária ────────────────────────────────────────────────────────────
+// ─── Meta diária (por device, com fallback para 'default' e depois env) ─────
 
-function getDailyGoal() {
-  const row = query(`SELECT value, updated_at FROM config WHERE key = 'daily_goal_ml'`)[0];
-  return {
-    daily_goal_ml: row ? Number(row.value) : 2000,
-    updated_at: row?.updated_at ?? null,
-  };
+function getDailyGoal(device_id) {
+  // Prefere a meta do próprio device; se não existir, usa a do 'default'
+  const row = query(
+    `SELECT value, updated_at, device_id FROM config
+     WHERE key = 'daily_goal_ml' AND device_id IN (?, 'default')
+     ORDER BY CASE device_id WHEN ? THEN 0 ELSE 1 END
+     LIMIT 1`,
+    [device_id, device_id]
+  )[0];
+
+  if (row) {
+    return {
+      device_id,
+      daily_goal_ml: Number(row.value),
+      updated_at: row.updated_at,
+      source: row.device_id === device_id ? 'device' : 'default',
+    };
+  }
+
+  return { device_id, daily_goal_ml: DEFAULT_GOAL_ML, updated_at: null, source: 'fallback' };
 }
 
-function setDailyGoal(goal_ml) {
+function setDailyGoal(device_id, goal_ml) {
   run(
-    `INSERT INTO config (key, value, updated_at)
-     VALUES ('daily_goal_ml', ?, strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
-     ON CONFLICT(key) DO UPDATE SET
+    `INSERT INTO config (key, device_id, value, updated_at)
+     VALUES ('daily_goal_ml', ?, ?, strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+     ON CONFLICT(key, device_id) DO UPDATE SET
        value      = excluded.value,
        updated_at = excluded.updated_at`,
-    [goal_ml]
+    [device_id, goal_ml]
   );
-  return getDailyGoal();
+  return getDailyGoal(device_id);
 }
 
 // ─── Inserção ──────────────────────────────────────────────────────────────
 
-function registerIntake({ amount_ml, device_id = 'arduino-01', notes = null }) {
+function registerIntake({ amount_ml, device_id }) {
   const { lastInsertRowid } = run(
-    'INSERT INTO water_intake (amount_ml, device_id, notes) VALUES (?, ?, ?)',
-    [amount_ml, device_id, notes]
+    'INSERT INTO water_intake (amount_ml, device_id) VALUES (?, ?)',
+    [amount_ml, device_id]
   );
-  return query('SELECT * FROM water_intake WHERE id = ?', [lastInsertRowid])[0];
+
+  const record = query('SELECT * FROM water_intake WHERE id = ?', [lastInsertRowid])[0];
+
+  // Envia as estatísticas do dia atualizadas para o front do device
+  global.users[device_id]?.emit('intake', getDailyStats(device_id));
+
+  createReminder(device_id);
+
+  return record;
+}
+
+// talvezzz faça sentido que a pessoa personalize os alertas. fica 30min por enquanto
+function createReminder(device_id) {
+  console.log(`Criando lembrete para ingestão de água em 30 minutos para o dispositivo ${device_id}...`);
+
+  console.log('Clients connected:', global.clients.size);
+
+  setTimeout(() => {
+    const lastIntake = getLastIntakeDate(device_id);
+
+    const now = new Date();
+    const diff = now - new Date(lastIntake);
+    const diffMinutes = Math.floor(diff / 1000 / 60);
+
+    if (diffMinutes >= 30) {
+      console.log(`Lembrete ao dispositivo ${device_id}: ${diffMinutes} minutos desde a última ingestão de água.`);
+      global.users[device_id]?.emit('reminder', { diffMinutes });
+    } else {
+      console.log(`Nenhum lembrete necessário. A última ingestão foi há ${diffMinutes} minutos.`);
+    }
+
+  }, 1000 * 10); // 10 seconds
 }
 
 // ─── Listagem ──────────────────────────────────────────────────────────────
 
-function listIntakes({ date, device_id, limit = 100, offset = 0 } = {}) {
-  let sql = 'SELECT * FROM water_intake WHERE 1=1';
-  const params = [];
+function listIntakes({ device_id, date, limit = 100, offset = 0 } = {}) {
+  let sql = 'SELECT * FROM water_intake WHERE device_id = ?';
+  const params = [device_id];
 
   if (date) {
     sql += ' AND DATE(recorded_at) = DATE(?)';
     params.push(date);
-  }
-  if (device_id) {
-    sql += ' AND device_id = ?';
-    params.push(device_id);
   }
 
   sql += ' ORDER BY recorded_at DESC LIMIT ? OFFSET ?';
@@ -76,9 +119,9 @@ function listIntakes({ date, device_id, limit = 100, offset = 0 } = {}) {
 
 // ─── Estatísticas do dia ────────────────────────────────────────────────────
 
-function getDailyStats(date = null) {
+function getDailyStats(device_id, date = null) {
   const targetDate = date || new Date().toISOString().slice(0, 10);
-  const { daily_goal_ml: GOAL } = getDailyGoal();
+  const { daily_goal_ml: GOAL } = getDailyGoal(device_id);
 
   const rows = query(`
     SELECT
@@ -91,9 +134,9 @@ function getDailyStats(date = null) {
       MIN(recorded_at)               AS first_intake,
       MAX(recorded_at)               AS last_intake
     FROM water_intake
-    WHERE DATE(recorded_at) = DATE(?)
+    WHERE device_id = ? AND DATE(recorded_at) = DATE(?)
     GROUP BY DATE(recorded_at)
-  `, [targetDate]);
+  `, [device_id, targetDate]);
 
   const stats = rows[0];
 
@@ -118,10 +161,22 @@ function getDailyStats(date = null) {
   };
 }
 
+function getLastIntakeDate(device_id) {
+  const rows = query(`
+    SELECT recorded_at
+    FROM water_intake
+    WHERE device_id = ?
+    ORDER BY recorded_at DESC
+    LIMIT 1
+  `, [device_id]);
+
+  return rows[0]?.recorded_at ?? null;
+}
+
 // ─── Histórico por período ──────────────────────────────────────────────────
 
-function getPeriodStats({ start_date, end_date } = {}) {
-  const { daily_goal_ml: GOAL } = getDailyGoal();
+function getPeriodStats({ device_id, start_date, end_date } = {}) {
+  const { daily_goal_ml: GOAL } = getDailyGoal(device_id);
   const today = new Date().toISOString().slice(0, 10);
   const from = start_date || (() => {
     const d = new Date(); d.setDate(d.getDate() - 6); return d.toISOString().slice(0, 10);
@@ -135,10 +190,10 @@ function getPeriodStats({ start_date, end_date } = {}) {
       ROUND(SUM(amount_ml), 2) AS total_ml,
       ROUND(AVG(amount_ml), 2) AS avg_ml_per_record
     FROM water_intake
-    WHERE DATE(recorded_at) BETWEEN DATE(?) AND DATE(?)
+    WHERE device_id = ? AND DATE(recorded_at) BETWEEN DATE(?) AND DATE(?)
     GROUP BY DATE(recorded_at)
     ORDER BY date ASC
-  `, [from, to]);
+  `, [device_id, from, to]);
 
   const totals = rows.reduce(
     (acc, r) => ({ ml: acc.ml + r.total_ml, records: acc.records + r.total_records }),
@@ -162,7 +217,7 @@ function getPeriodStats({ start_date, end_date } = {}) {
 
 // ─── Distribuição por hora ──────────────────────────────────────────────────
 
-function getHourlyDistribution(date = null) {
+function getHourlyDistribution(device_id, date = null) {
   const targetDate = date || new Date().toISOString().slice(0, 10);
 
   const rows = query(`
@@ -171,10 +226,10 @@ function getHourlyDistribution(date = null) {
       COUNT(*)                                      AS records,
       ROUND(SUM(amount_ml), 2)                      AS total_ml
     FROM water_intake
-    WHERE DATE(recorded_at) = DATE(?)
+    WHERE device_id = ? AND DATE(recorded_at) = DATE(?)
     GROUP BY hour
     ORDER BY hour ASC
-  `, [targetDate]);
+  `, [device_id, targetDate]);
 
   const full = Array.from({ length: 24 }, (_, h) => {
     const found = rows.find(r => r.hour === h);
@@ -184,17 +239,23 @@ function getHourlyDistribution(date = null) {
   return { date: targetDate, hourly: full };
 }
 
-// ─── Deleção ───────────────────────────────────────────────────────────────
+// ─── Deleção (escopada por device) ──────────────────────────────────────────
 
-function deleteIntake(id) {
-  const rows = query('SELECT * FROM water_intake WHERE id = ?', [id]);
+function deleteIntake(id, device_id) {
+  const rows = query('SELECT * FROM water_intake WHERE id = ? AND device_id = ?', [id, device_id]);
   if (!rows.length) return null;
-  run('DELETE FROM water_intake WHERE id = ?', [id]);
+  run('DELETE FROM water_intake WHERE id = ? AND device_id = ?', [id, device_id]);
   return rows[0];
 }
 
 module.exports = {
-  getDailyGoal, setDailyGoal,
-  registerIntake, listIntakes, getDailyStats,
-  getPeriodStats, getHourlyDistribution, deleteIntake,
+  getDailyGoal,
+  setDailyGoal,
+  registerIntake,
+  listIntakes,
+  getDailyStats,
+  getPeriodStats,
+  getHourlyDistribution,
+  deleteIntake,
+  getLastIntakeDate,
 };

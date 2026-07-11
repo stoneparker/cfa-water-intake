@@ -2,7 +2,8 @@ const service = require('../services/waterService');
 
 // POST /api/intake
 function createIntake(req, res) {
-  const { amount_ml, device_id, notes } = req.body;
+  const { amount_ml } = req.body;
+  const device_id = req.deviceId;
 
   if (amount_ml === undefined || amount_ml === null) {
     return res.status(400).json({ error: 'O campo amount_ml é obrigatório.' });
@@ -13,7 +14,7 @@ function createIntake(req, res) {
   }
 
   try {
-    const record = service.registerIntake({ amount_ml: parsed, device_id, notes });
+    const record = service.registerIntake({ amount_ml: parsed, device_id });
     return res.status(201).json({ success: true, data: record });
   } catch (err) {
     return res.status(500).json({ error: 'Erro ao registrar ingestão.', detail: err.message });
@@ -22,11 +23,11 @@ function createIntake(req, res) {
 
 // GET /api/intake
 function getIntakes(req, res) {
-  const { date, device_id, limit, offset } = req.query;
+  const { date, limit, offset } = req.query;
   try {
     const records = service.listIntakes({
+      device_id: req.deviceId,
       date,
-      device_id,
       limit: limit ? Number(limit) : 100,
       offset: offset ? Number(offset) : 0,
     });
@@ -41,8 +42,8 @@ function removeIntake(req, res) {
   const id = Number(req.params.id);
   if (isNaN(id)) return res.status(400).json({ error: 'ID inválido.' });
   try {
-    const deleted = service.deleteIntake(id);
-    if (!deleted) return res.status(404).json({ error: 'Registro não encontrado.' });
+    const deleted = service.deleteIntake(id, req.deviceId);
+    if (!deleted) return res.status(404).json({ error: 'Registro não encontrado para este device.' });
     return res.json({ success: true, data: deleted });
   } catch (err) {
     return res.status(500).json({ error: 'Erro ao deletar registro.', detail: err.message });
@@ -52,7 +53,7 @@ function removeIntake(req, res) {
 // GET /api/goal
 function getGoal(req, res) {
   try {
-    return res.json({ success: true, data: service.getDailyGoal() });
+    return res.json({ success: true, data: service.getDailyGoal(req.deviceId) });
   } catch (err) {
     return res.status(500).json({ error: 'Erro ao buscar meta.', detail: err.message });
   }
@@ -71,7 +72,7 @@ function updateGoal(req, res) {
   }
 
   try {
-    const updated = service.setDailyGoal(parsed);
+    const updated = service.setDailyGoal(req.deviceId, parsed);
     return res.json({ success: true, data: updated });
   } catch (err) {
     return res.status(500).json({ error: 'Erro ao atualizar meta.', detail: err.message });
@@ -82,7 +83,7 @@ function updateGoal(req, res) {
 function getDailyStats(req, res) {
   const { date } = req.query;
   try {
-    return res.json({ success: true, data: service.getDailyStats(date) });
+    return res.json({ success: true, data: service.getDailyStats(req.deviceId, date) });
   } catch (err) {
     return res.status(500).json({ error: 'Erro ao calcular estatísticas diárias.', detail: err.message });
   }
@@ -92,7 +93,7 @@ function getDailyStats(req, res) {
 function getPeriodStats(req, res) {
   const { start_date, end_date } = req.query;
   try {
-    return res.json({ success: true, data: service.getPeriodStats({ start_date, end_date }) });
+    return res.json({ success: true, data: service.getPeriodStats({ device_id: req.deviceId, start_date, end_date }) });
   } catch (err) {
     return res.status(500).json({ error: 'Erro ao calcular estatísticas do período.', detail: err.message });
   }
@@ -102,7 +103,7 @@ function getPeriodStats(req, res) {
 function getHourlyDistribution(req, res) {
   const { date } = req.query;
   try {
-    return res.json({ success: true, data: service.getHourlyDistribution(date) });
+    return res.json({ success: true, data: service.getHourlyDistribution(req.deviceId, date) });
   } catch (err) {
     return res.status(500).json({ error: 'Erro ao calcular distribuição horária.', detail: err.message });
   }

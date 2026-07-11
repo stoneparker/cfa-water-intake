@@ -1,3 +1,13 @@
+// Middleware que exige o device_id via header (X-Device-Id) em todas as rotas /api
+function deviceId(req, res, next) {
+  const id = req.get('X-Device-Id');
+  if (!id || !id.trim()) {
+    return res.status(400).json({ error: 'Header X-Device-Id é obrigatório.' });
+  }
+  req.deviceId = id.trim();
+  next();
+}
+
 // Middleware de log de requisições
 function requestLogger(req, res, next) {
   const start = Date.now();
@@ -19,4 +29,4 @@ function notFound(req, res) {
   res.status(404).json({ error: `Rota não encontrada: ${req.method} ${req.originalUrl}` });
 }
 
-module.exports = { requestLogger, errorHandler, notFound };
+module.exports = { deviceId, requestLogger, errorHandler, notFound };
