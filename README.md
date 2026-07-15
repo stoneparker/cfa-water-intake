@@ -163,17 +163,6 @@ api/
 └── package.json
 ```
 
-**Inicialização (`src/index.js`):** carrega o `.env`, inicializa o banco (`initDb`) e sobe **dois servidores** — o HTTP (Express) e o WebSocket (Socket.io) — mantendo um registro global das conexões.
-
-### Configuração (`.env`)
-
-| Variável        | Padrão   | Descrição                                   |
-|-----------------|----------|---------------------------------------------|
-| `PORT`          | `4000`   | Porta do servidor HTTP/REST                 |
-| `WS_PORT`       | `4001`   | Porta do servidor WebSocket (Socket.io)     |
-| `DAILY_GOAL_ML` | `2000`   | Meta diária padrão (fallback global inicial)|
-| `DB_PATH`       | `./data/water.db` | Caminho do arquivo SQLite          |
-
 ### Identificação por dispositivo
 
 Todas as rotas sob `/api` passam pelo middleware `deviceId`, que **exige o cabeçalho `X-Device-Id`**. O valor vira `req.deviceId` e escopa todas as operações — cada dispositivo tem seus próprios registros, sua própria meta e suas próprias estatísticas. Requisições sem esse cabeçalho recebem `400`.
@@ -220,47 +209,11 @@ Exemplo de resposta de `/api/stats/daily`:
   }
 }
 ```
-
-### Banco de dados (`models/db.js`)
-
-O SQLite é criado automaticamente na primeira execução. O módulo aplica **migrações idempotentes** para atualizar bancos antigos (remoção da antiga coluna `notes`, inclusão de `device_id` na tabela `config`).
-
-```sql
-CREATE TABLE water_intake (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  amount_ml   REAL    NOT NULL CHECK (amount_ml > 0),
-  recorded_at TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
-  device_id   TEXT    NOT NULL DEFAULT 'arduino-01'
-);
-
-CREATE TABLE config (
-  key        TEXT NOT NULL,
-  device_id  TEXT NOT NULL DEFAULT 'default',
-  value      TEXT NOT NULL,
-  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
-  PRIMARY KEY (key, device_id)
-);
-```
-
-A meta diária é resolvida em cascata: primeiro a meta **do próprio dispositivo**; se não existir, a meta do `default`; e, por fim, o valor de `DAILY_GOAL_ML` do `.env`.
-
 ### Tempo real e lembretes (`services/waterService.js` + `server/ws.js`)
 
 * Ao registrar uma ingestão, o serviço emite o evento **`intake`** com as estatísticas atualizadas do dia para o socket daquele dispositivo (`global.users[device_id]`).
 * Em seguida agenda um **lembrete**: se ao final do intervalo tiver passado ≥ 30 min desde a última ingestão, emite o evento **`reminder`** com quantos minutos se passaram.
 * O servidor Socket.io registra cada cliente pelo `device_id` recebido em `handshake.query.device_id`, mantendo o mapa `device_id → socket`.
-
-> ⚙️ No código atual o timer do lembrete está reduzido para **10 segundos** para facilitar os testes (o alvo é 30 min). O comentário no código sinaliza a intenção de tornar esse intervalo configurável por usuário no futuro.
-
-### Como rodar
-
-```bash
-cd api
-npm install
-cp .env.example .env      # ajuste as portas/meta se necessário
-npm start                 # inicia HTTP (4000) + WebSocket (4001)
-# npm run fresh           # apaga o banco e reinicia do zero
-```
 
 
 ## Aplicação Web (`web/`)
@@ -295,32 +248,12 @@ A web recebe o dispositivo pela query string da URL: `http://localhost:3000/?dev
 * injetado no cabeçalho `X-Device-Id` de toda requisição REST (`services/api.js`);
 * usado como `query.device_id` ao abrir a conexão Socket.io (`services/socket.js`), para receber os eventos daquele dispositivo.
 
-### Configuração (`.env`)
-
-| Variável                | Padrão                      | Descrição                        |
-|-------------------------|-----------------------------|----------------------------------|
-| `REACT_APP_API_URL`     | `http://localhost:4000/api` | Base da API REST                 |
-| `REACT_APP_SOCKET_URL`  | `http://localhost:4001`     | Servidor Socket.io               |
-
 ### Telas
 
 * **Início (`Home.js`):** anel de progresso (componente `Ring`, SVG que vai de azul a verde ao atingir 100%) mostrando ml bebidos, meta, quanto falta e número de registros do dia. Inclui botões de registro rápido (150/200/250/350/500 ml) e um campo para quantidade personalizada. Um banner de lembrete aparece quando o evento `reminder` chega.
 * **Estatísticas (`Stats.js`):** gráfico de barras de consumo por hora do dia, seletor de período (7/14/30 dias), totais agregados (total no período, média diária, metas atingidas) e detalhamento dia a dia com barras de progresso.
 
 Ambas as telas escutam os eventos `intake` (atualiza os números em tempo real quando o ESP32 registra água) e `reminder` (exibe o aviso de hidratação).
-
-### Como rodar
-
-```bash
-cd web
-npm install
-cp .env.example .env
-npm start                 # http://localhost:3000/?device_id=esp32-01
-```
-
-## Aplicativo de software
-
-As medições de peso realizadas na garrafa são enviadas para um aplicativo, com o objetivo de apresentar ao usuário estatísticas de ingestão de água, diárias e por período selecionado, e permitir a configuração do tamanho da garrafa utilizada e da meta diária de ingestão.
 
 ## Próximos passos
 
@@ -334,6 +267,5 @@ As medições de peso realizadas na garrafa são enviadas para um aplicativo, co
 - [ ] Definir formato de "alimentação móvel" (baterias ou powerbanks)
 - [x] Criar servidor de socket.io na API para envio de lembretes ao front-end
 - [x] Imprimir id do dispositivo no display para associação no front-end
-- [ ] Tornar o intervalo de lembrete configurável por usuário (atualmente fixo, reduzido para testes)
 
 > Possivelmente existem passos intermediários que serão melhor elaborados conforme o avanço do desenvolvimento
