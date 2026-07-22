@@ -270,3 +270,8 @@ Ambas as telas escutam os eventos `intake` (atualiza os números em tempo real q
 - [x] Imprimir id do dispositivo no display para associação no front-end
 
 > Possivelmente existem passos intermediários que serão melhor elaborados conforme o avanço do desenvolvimento
+
+---
+## Referências
+* https://justdoelectronics.com/load-cell-hx711-module
+* https://github.com/bogde/hx711
