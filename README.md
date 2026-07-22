@@ -32,8 +32,8 @@ Em pesquisa de mercado foram encontradas garrafas inteiras com esse mecanismo à
 ### Dispositivo
 
 * Placa microcontroladora ESP32-C3 Super Mini OLED Display de 0.42''
-* 4 Jumpers Macho-Macho
-* Célula de carga com capacidade para até 50kg
+* 4 Jumpers Fêmea-Fêmea
+* Célula de carga com capacidade para até 5kg
 * Placa HX-711
 
 **Conexões:**
@@ -49,7 +49,8 @@ Em pesquisa de mercado foram encontradas garrafas inteiras com esse mecanismo à
 |-----------------|-------|
 | Vermelho        | E+    |
 | Preto           | E−    |
-| Branco          | A+    |
+| Branco          | A-    |
+| Verde           | A+    |
 
 <img width="2560" height="1441" alt="photo_2026-07-08_08-42-58" src="https://github.com/user-attachments/assets/227b0e9d-c2b0-43bd-90a1-b880e04233d8" />
 
