@@ -17,25 +17,33 @@ const int xOffset = 30;
 const int yOffset = 12;
 
 // ─── Wi-Fi / API config ───
-
-const char* WIFI_SSID = "mojo dojo casa house";
-const char* WIFI_PASSWORD = "123456789a";
-const char* API_URL = "http://192.168.15.193:4000/api/intake";
+const char* WIFI_SSID = "S26 Ultra de Vitória";
+const char* WIFI_PASSWORD = "vivivivi";
+const char* API_URL = "http://10.214.5.252:4000/api/intake";
 const char* DEVICE_ID = "esp32-01";
 
 // ─── Calibration ───
-float CALIBRATION_FACTOR = 61.92;
+const long CALIBRATION_FACTOR = 350;
 
 // ─── Detection parameters ───
-const float MIN_INTAKE_ML = 0;
-const int   CHECK_INTERVAL = 10000;
+const float MIN_BOTTLE_WEIGHT = 400.0;
+const float MIN_INTAKE_ML = 50.0;
+const float STABLE_THRESHOLD = 2.0;
+const int STABLE_CONFIRM = 6;
+const int LIFT_CONFIRM = 3;
+const int READ_INTERVAL_MS = 300;
 
 HX711 scale;
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE, OLED_SCL, OLED_SDA);
 
-// ─── State ───
-float referenceWeight = 0.0;   // Weight from the last check
-unsigned long lastCheckTime = 0;
+// ─── State machine ───
+enum ScaleState { ON_SCALE, LIFTED, SETTLING };
+ScaleState state = ON_SCALE;
+
+float referenceWeight = 0.0;
+float lastReading = 0.0;
+int belowCount = 0;
+int stableCount = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -54,56 +62,97 @@ void setup() {
 
   connectWifi();
 
-  referenceWeight = scale.get_units(10);
-  if (referenceWeight < 0) referenceWeight = 0;
+  referenceWeight = scale.get_units(20);
+  lastReading = referenceWeight;
   Serial.print("[SETUP] Initial reference: ");
   Serial.print(referenceWeight, 1);
   Serial.println(" g");
 
   showDisplay("Pronto!", "", "");
   delay(1000);
-
-  lastCheckTime = millis();
 }
 
 void loop() {
-  float liveWeight = scale.get_units(3);
-  if (liveWeight < 0) liveWeight = 0;
+  float current = scale.get_units(5);
+
+  Serial.print("[READ] ");
+  Serial.print(current, 1);
+  Serial.print(" g | State: ");
+  Serial.println(stateName(state));
 
   char weightLine[16];
-  snprintf(weightLine, sizeof(weightLine), "%.1f g", liveWeight);
+  snprintf(weightLine, sizeof(weightLine), "%.1f g", current);
   showDisplay(weightLine, "WI!", DEVICE_ID);
 
-  if (millis() - lastCheckTime >= CHECK_INTERVAL) {
-    lastCheckTime = millis();
+  switch (state) {
 
-    float current = scale.get_units(10);
-    if (current < 0) current = 0;
+    case ON_SCALE:
+      if (current < MIN_BOTTLE_WEIGHT) {
+        belowCount++;
+        if (belowCount >= LIFT_CONFIRM) {
+          Serial.println("[EVENT] Bottle lifted off the scale.");
+          state = LIFTED;
+          belowCount = 0;
+        }
+      } else {
+        belowCount = 0;
+        referenceWeight = current;
+      }
+      break;
 
-    float delta = referenceWeight - current;
+    case LIFTED:
+      if (current >= MIN_BOTTLE_WEIGHT) {
+        Serial.println("[EVENT] Bottle placed back, settling...");
+        state = SETTLING;
+        stableCount = 0;
+        lastReading = current;
+      }
+      break;
 
-    Serial.print("[CHECK] Current: ");
-    Serial.print(current, 1);
-    Serial.print(" g | Ref: ");
-    Serial.print(referenceWeight, 1);
-    Serial.print(" g | Diff: ");
-    Serial.print(delta, 1);
-    Serial.println(" g");
+    case SETTLING:
+      if (abs(current - lastReading) <= STABLE_THRESHOLD) {
+        stableCount++;
+      } else {
+        stableCount = 0;
+      }
+      lastReading = current;
 
-    if (delta > MIN_INTAKE_ML) {
-      Serial.print("[INTAKE] ");
-      Serial.print(delta, 1);
-      Serial.println(" ml consumed");
-      showDisplay("Registrado", weightLine, "enviando...");
-      sendIntake(delta);
-    } else {
-      Serial.println("[CHECK] No significant intake.");
-    }
+      if (stableCount >= STABLE_CONFIRM) {
+        float delta = referenceWeight - current;
+        Serial.print("[SETTLED] New weight: ");
+        Serial.print(current, 1);
+        Serial.print(" g | Ref: ");
+        Serial.print(referenceWeight, 1);
+        Serial.print(" g | Diff: ");
+        Serial.print(delta, 1);
+        Serial.println(" g");
 
-    referenceWeight = current;
+        if (delta > MIN_INTAKE_ML) {
+          Serial.print("[INTAKE] ");
+          Serial.print(delta, 1);
+          Serial.println(" ml consumed");
+          showDisplay("Registrado", weightLine, "enviando...");
+          sendIntake(delta);
+        } else {
+          Serial.println("[SETTLED] No significant intake (refill or noise).");
+        }
+
+        referenceWeight = current;
+        state = ON_SCALE;
+      }
+      break;
   }
 
-  delay(300);
+  delay(READ_INTERVAL_MS);
+}
+
+const char* stateName(ScaleState s) {
+  switch (s) {
+    case ON_SCALE: return "ON_SCALE";
+    case LIFTED:   return "LIFTED";
+    case SETTLING: return "SETTLING";
+  }
+  return "";
 }
 
 // ─── Wi-Fi connection ───
