@@ -2,9 +2,6 @@ const { getDb, persist } = require('../models/db');
 
 const DEFAULT_GOAL_ML = Number(process.env.DAILY_GOAL_ML || 2000);
 
-// ─── helpers ───────────────────────────────────────────────────────────────
-
-/** Executa SELECT e retorna array de objetos */
 function query(sql, params = []) {
   const db = getDb();
   const result = db.exec(sql, params);
@@ -13,7 +10,6 @@ function query(sql, params = []) {
   return values.map(row => Object.fromEntries(columns.map((c, i) => [c, row[i]])));
 }
 
-/** Executa INSERT/UPDATE/DELETE e persiste */
 function run(sql, params = []) {
   const db = getDb();
   db.run(sql, params);
@@ -23,10 +19,7 @@ function run(sql, params = []) {
   return { lastInsertRowid: rowid, changes };
 }
 
-// ─── Meta diária (por device, com fallback para 'default' e depois env) ─────
-
 function getDailyGoal(device_id) {
-  // Prefere a meta do próprio device; se não existir, usa a do 'default'
   const row = query(
     `SELECT value, updated_at, device_id FROM config
      WHERE key = 'daily_goal_ml' AND device_id IN (?, 'default')
@@ -59,8 +52,6 @@ function setDailyGoal(device_id, goal_ml) {
   return getDailyGoal(device_id);
 }
 
-// ─── Inserção ──────────────────────────────────────────────────────────────
-
 function registerIntake({ amount_ml, device_id }) {
   const { lastInsertRowid } = run(
     'INSERT INTO water_intake (amount_ml, device_id) VALUES (?, ?)',
@@ -69,7 +60,6 @@ function registerIntake({ amount_ml, device_id }) {
 
   const record = query('SELECT * FROM water_intake WHERE id = ?', [lastInsertRowid])[0];
 
-  // Envia as estatísticas do dia atualizadas para o front do device
   global.users[device_id]?.emit('intake', getDailyStats(device_id));
 
   createReminder(device_id);
@@ -77,11 +67,8 @@ function registerIntake({ amount_ml, device_id }) {
   return record;
 }
 
-// talvezzz faça sentido que a pessoa personalize os alertas. fica 30min por enquanto
 function createReminder(device_id) {
   console.log(`Criando lembrete para ingestão de água em 30 minutos para o dispositivo ${device_id}...`);
-
-  console.log('Clients connected:', global.clients.size);
 
   setTimeout(() => {
     const lastIntake = getLastIntakeDate(device_id);
@@ -90,17 +77,16 @@ function createReminder(device_id) {
     const diff = now - new Date(lastIntake);
     const diffMinutes = Math.floor(diff / 1000 / 60);
 
-    if (diffMinutes >= 30) {
+    if (diffMinutes >= 2) {
       console.log(`Lembrete ao dispositivo ${device_id}: ${diffMinutes} minutos desde a última ingestão de água.`);
       global.users[device_id]?.emit('reminder', { diffMinutes });
     } else {
       console.log(`Nenhum lembrete necessário. A última ingestão foi há ${diffMinutes} minutos.`);
     }
 
-  }, 1000 * 10); // 10 seconds
+  }, 1000 * 60 * 2); 
 }
 
-// ─── Listagem ──────────────────────────────────────────────────────────────
 
 function listIntakes({ device_id, date, limit = 100, offset = 0 } = {}) {
   let sql = 'SELECT * FROM water_intake WHERE device_id = ?';
@@ -116,8 +102,6 @@ function listIntakes({ device_id, date, limit = 100, offset = 0 } = {}) {
 
   return query(sql, params);
 }
-
-// ─── Estatísticas do dia ────────────────────────────────────────────────────
 
 function getDailyStats(device_id, date = null) {
   const targetDate = date || new Date().toISOString().slice(0, 10);
@@ -173,8 +157,6 @@ function getLastIntakeDate(device_id) {
   return rows[0]?.recorded_at ?? null;
 }
 
-// ─── Histórico por período ──────────────────────────────────────────────────
-
 function getPeriodStats({ device_id, start_date, end_date } = {}) {
   const { daily_goal_ml: GOAL } = getDailyGoal(device_id);
   const today = new Date().toISOString().slice(0, 10);
@@ -215,8 +197,6 @@ function getPeriodStats({ device_id, start_date, end_date } = {}) {
   };
 }
 
-// ─── Distribuição por hora ──────────────────────────────────────────────────
-
 function getHourlyDistribution(device_id, date = null) {
   const targetDate = date || new Date().toISOString().slice(0, 10);
 
@@ -239,7 +219,7 @@ function getHourlyDistribution(device_id, date = null) {
   return { date: targetDate, hourly: full };
 }
 
-// ─── Deleção (escopada por device) ──────────────────────────────────────────
+
 
 function deleteIntake(id, device_id) {
   const rows = query('SELECT * FROM water_intake WHERE id = ? AND device_id = ?', [id, device_id]);

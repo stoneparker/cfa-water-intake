@@ -4,8 +4,6 @@ const io = new Server({ cors: { origin: '*' } });
 const PORT = process.env.WS_PORT || 4001;
 global.users = {};
 
-// vai ser preciso criar alguma associação entre id do dispositivo e id da interface p enviar os lembretes
-// exibir id no led para configurar no front-end?
 io.on('connection', (socket) => {
   const deviceId = socket.handshake.query.device_id;
 

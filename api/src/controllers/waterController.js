@@ -1,6 +1,6 @@
 const service = require('../services/waterService');
 
-// POST /api/intake
+
 function createIntake(req, res) {
   const { amount_ml } = req.body;
   const device_id = req.deviceId;
@@ -21,7 +21,7 @@ function createIntake(req, res) {
   }
 }
 
-// GET /api/intake
+
 function getIntakes(req, res) {
   const { date, limit, offset } = req.query;
   try {
@@ -37,7 +37,7 @@ function getIntakes(req, res) {
   }
 }
 
-// DELETE /api/intake/:id
+
 function removeIntake(req, res) {
   const id = Number(req.params.id);
   if (isNaN(id)) return res.status(400).json({ error: 'ID inválido.' });
@@ -50,7 +50,7 @@ function removeIntake(req, res) {
   }
 }
 
-// GET /api/goal
+
 function getGoal(req, res) {
   try {
     return res.json({ success: true, data: service.getDailyGoal(req.deviceId) });
@@ -59,7 +59,7 @@ function getGoal(req, res) {
   }
 }
 
-// PUT /api/goal
+
 function updateGoal(req, res) {
   const { daily_goal_ml } = req.body;
 
@@ -79,7 +79,7 @@ function updateGoal(req, res) {
   }
 }
 
-// GET /api/stats/daily
+
 function getDailyStats(req, res) {
   const { date } = req.query;
   try {
@@ -89,7 +89,7 @@ function getDailyStats(req, res) {
   }
 }
 
-// GET /api/stats/period
+
 function getPeriodStats(req, res) {
   const { start_date, end_date } = req.query;
   try {
@@ -99,7 +99,7 @@ function getPeriodStats(req, res) {
   }
 }
 
-// GET /api/stats/hourly
+
 function getHourlyDistribution(req, res) {
   const { date } = req.query;
   try {

@@ -20,7 +20,6 @@ function persist() {
   fs.writeFileSync(resolvedPath, Buffer.from(data));
 }
 
-/** Verifica se uma coluna existe numa tabela (para migrações idempotentes) */
 function columnExists(table, column) {
   const res = _db.exec(`PRAGMA table_info(${table})`);
   if (!res.length) return false;
@@ -41,7 +40,7 @@ async function initDb() {
     console.log(`[DB] Novo banco criado em ${resolvedPath}`);
   }
 
-  // ── Schema (bancos novos já nascem no formato final, sem 'notes') ──────────
+  
   _db.run(`
     CREATE TABLE IF NOT EXISTS water_intake (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,7 +52,7 @@ async function initDb() {
   _db.run(`CREATE INDEX IF NOT EXISTS idx_recorded_at ON water_intake (recorded_at)`);
   _db.run(`CREATE INDEX IF NOT EXISTS idx_device_id ON water_intake (device_id)`);
 
-  // config: meta por device → PK composta (key, device_id)
+  
   _db.run(`
     CREATE TABLE IF NOT EXISTS config (
       key        TEXT NOT NULL,
@@ -64,9 +63,6 @@ async function initDb() {
     )
   `);
 
-  // ── Migrações para bancos que já existiam ──────────────────────────────────
-
-  // 1) Remove a coluna 'notes' de water_intake (SQLite antigo não tem DROP COLUMN)
   if (columnExists('water_intake', 'notes')) {
     _db.exec(`
       CREATE TABLE water_intake_new (
@@ -85,8 +81,7 @@ async function initDb() {
     _db.run(`CREATE INDEX IF NOT EXISTS idx_device_id ON water_intake (device_id)`);
     console.log(`[DB] Migração: coluna 'notes' removida de water_intake`);
   }
-
-  // 2) Adiciona device_id à config (goal global antiga vira o padrão 'default')
+  
   if (!columnExists('config', 'device_id')) {
     _db.exec(`
       CREATE TABLE config_new (
@@ -104,8 +99,8 @@ async function initDb() {
     console.log(`[DB] Migração: config agora tem device_id (goal antiga migrada para 'default')`);
   }
 
-  // Meta padrão global (device 'default'), usada como fallback quando o device
-  // ainda não configurou a própria meta. Inserida só se ainda não existir.
+  
+  
   const defaultGoal = process.env.DAILY_GOAL_ML || '2000';
   _db.run(
     `INSERT OR IGNORE INTO config (key, device_id, value) VALUES ('daily_goal_ml', 'default', ?)`,
