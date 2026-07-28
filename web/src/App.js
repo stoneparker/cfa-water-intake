@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import Home from './pages/Home';
 import Stats from './pages/Stats';
 
-import { connectDevice } from './services/socket';
+import { connectDevice, onReminder } from './services/socket';
+import Settings from './pages/Settings';
 
 const TABS = [
   { id: 'home', label: 'Início' },
   { id: 'stats', label: 'Estatísticas' },
+  { id: 'settings', label: 'Configurações' },
 ];
 
 export default function App() {
@@ -15,6 +17,12 @@ export default function App() {
   useEffect(() => {
     const deviceId = new URLSearchParams(window.location.search).get('device_id');
     connectDevice(deviceId);
+  }, []);
+
+
+  useEffect(() => {
+    const unsub = onReminder((data) => alert(`Atenção! Já faz ${data?.diffMinutes} minutos desde sua última ingestão de água. Hora de se hidratar!`));
+    return unsub;
   }, []);
 
   return (
@@ -30,6 +38,7 @@ export default function App() {
       <main>
         {tab === 'home' && <Home />}
         {tab === 'stats' && <Stats />}
+        {tab === 'settings' && <Settings />}
       </main>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getDailyStats, getPeriodStats, getHourlyStats } from '../services/api';
-import { onReminder, onIntake } from '../services/socket';
+import { onIntake } from '../services/socket';
 
 const PERIODS = [{ label: '7 dias', days: 7 }, { label: '14 dias', days: 14 }, { label: '30 dias', days: 30 }];
 
@@ -15,7 +15,6 @@ export default function Stats() {
   const [days, setDays] = useState(7);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [reminder, setReminder] = useState(null);
 
   const load = useCallback(async (d = days) => {
     setLoading(true);
@@ -46,11 +45,6 @@ export default function Stats() {
     return unsub;
   }, [load]);
 
-  useEffect(() => {
-    const unsub = onReminder((data) => setReminder({ diffMinutes: data?.diffMinutes }));
-    return unsub;
-  }, []);
-
   const maxMl = Math.max(...hourly.map(h => h.total_ml), 1);
   const daysHit = period?.daily?.filter(d => d.goal_reached).length ?? 0;
 
@@ -61,15 +55,6 @@ export default function Stats() {
       </div>
 
       {error && <div className="error-msg">{error}</div>}
-
-      {reminder && (
-        <div style={{
-          background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1e40af',
-          borderRadius: 'var(--radius)', padding: '12px 16px', marginBottom: 16, fontSize: 14,
-        }}>
-          💧 Faz {reminder.diffMinutes} min desde o último gole. Hora de se hidratar!
-        </div>
-      )}
 
       {/* Hourly chart */}
       <div className="card">

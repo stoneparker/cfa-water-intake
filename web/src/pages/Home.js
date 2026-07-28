@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Ring from '../components/Ring';
 import { getDailyStats, registerIntake } from '../services/api';
-import { onReminder, onIntake } from '../services/socket';
+import { onIntake } from '../services/socket';
 
 const QUICK = [150, 200, 250, 350, 500];
 
@@ -11,7 +11,6 @@ export default function Home() {
   const [adding, setAdding] = useState(false);
   const [custom, setCustom] = useState('');
   const [error, setError] = useState('');
-  const [reminder, setReminder] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -30,11 +29,6 @@ export default function Home() {
 
   useEffect(() => {
     const unsub = onIntake((data) => setStats(data));
-    return unsub;
-  }, []);
-
-  useEffect(() => {
-    const unsub = onReminder((data) => setReminder({ diffMinutes: data?.diffMinutes }));
     return unsub;
   }, []);
 
@@ -76,15 +70,6 @@ export default function Home() {
       </div>
 
       {error && <div className="error-msg">{error}</div>}
-
-      {reminder && (
-        <div style={{
-          background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1e40af',
-          borderRadius: 'var(--radius)', padding: '12px 16px', marginBottom: 16, fontSize: 14,
-        }}>
-          💧 Faz {reminder.diffMinutes} min desde o último gole. Hora de se hidratar!
-        </div>
-      )}
 
       {/* Ring */}
       <div className="card">
