@@ -194,7 +194,7 @@ Todo o comportamento do dispositivo é governado por oito constantes:
 
 | Constante | Valor | Significado |
 |-----------|-------|-------------|
-| `CALIBRATION_FACTOR` | `350` | Contagens do HX711 por grama ([seção 3.7](#37-calibração-do-valor-bruto-ao-grama)) |
+| `CALIBRATION_FACTOR` | `350` | Contagens do HX711 por grama |
 | `MIN_BOTTLE_WEIGHT` | `400.0` g | Abaixo disso, considera-se que **não há garrafa** sobre a base |
 | `MIN_INTAKE_ML` | `50.0` | Diferença mínima para valer como ingestão — filtra ruído e reposicionamento |
 | `STABLE_THRESHOLD` | `2.0` g | Tolerância entre leituras consecutivas para considerá-las "iguais" |
@@ -615,12 +615,12 @@ npm start
 
 1. Instalar as bibliotecas `HX711` e `U8g2` e o core ESP32 na IDE Arduino.
 2. Ajustar `WIFI_SSID`, `WIFI_PASSWORD` e `API_URL` (IP da máquina que roda a API na mesma rede local).
-3. Calibrar `CALIBRATION_FACTOR` para a célula em uso ([seção 3.7](#37-calibração-do-valor-bruto-ao-grama)).
+3. Calibrar `CALIBRATION_FACTOR` para a célula em uso.
 4. Gravar e acompanhar pela serial em 115200 baud.
 5. Ligar com a base **vazia** e posicionar a garrafa durante a conexão Wi-Fi.
 
 ---
-# Parte IV — Evolução
+# Parte V — Evolução
 
 ## 14. Próximos passos
 
@@ -648,3 +648,9 @@ npm start
 
 
 > Possivelmente existem passos intermediários que serão melhor elaborados conforme o avanço do desenvolvimento.
+
+## 15. Principais dificuldades
+- **Escolha da célula de carga:** um grande erro cometido no início do desenvolvimento foi a tentativa de utilização de uma célula de carga de 3 fios (falta de pesquisa, peguei a primeira que apareceu no Mercado Livre). Fiquei um tempo tentando regular achando que poderia ser a conexão sem solda, porém jamais funcionaria corretamente sem célular idênticas complementares, ou uma célula completa, como a de 4 fios utilizada por fim.
+- **Solda:** a troca da célula de carga exigiu refazer a solda, procedimento que tentei fazer de forma autônoma e acabei tendo uma série de dificuldades, gerando o saldo de 1 ferro de solda queimado, uma placa HX711 levemente carbonizada, e alguns bugs iniciais na pesagem devido aos fios se encostando indiretamente.
+- **Base da célula de carga:** o funcionamento adequado exige uma base estável, concentrando o peso em uma das pontas. Foi especialmente difícil fazer uma base pequena para caber dentro da base de silicone que fosse suficiente estável para as medições, além [do topo] suportar o peso e tamanho da garrafa em si. O MDF perfurado, combinado com algumas arruelas e brochas dos parafusos, e alguns pontos de cola quente, fizeram o seu trabalho, mas a base ainda ficou levemente instável.
+- **Alimentação móvel:** a base de silicone dispõe de espaço limitado, dificultando a acomodação dos componentes principais. Foram feitas algumas pesquisas de mini-baterias, porém não encontrei nada pequeno o suficiente para caber na base, ao menos com implementação simples para o prazo de entrega. Atualmente, a alimentação do dispositivo é feita por um cabo USB que sai da base de silicone.
