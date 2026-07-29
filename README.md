@@ -75,8 +75,7 @@ delta [g] = referenceWeight - current      →  enviado como amount_ml
 | Branco   | A− | Sinal negativo do canal A |
 | Verde    | A+ | Sinal positivo do canal A |
 
-> São **quatro** fios, não três: dois de excitação e **dois de sinal**. Isso significa que a célula é uma **ponte de Wheatstone completa**, com os quatro braços ativos — e não uma meia-ponte. A consequência prática está detalhada na [seção 3](#3-como-a-célula-de-carga-e-o-hx711-funcionam): sensibilidade quatro vezes maior e compensação térmica intrínseca.
-
+> Inicialmente foi realizada uma tentativa de uso utilizando uma célula de carga de 3 fios, porém essa é uma célula "meia ponte" que necessita de outras em conjunto. A alteração para a célula de 4 fios permitiu o uso de uma célula única para capturar todos os sinais necessários pelo ESP32.
 <img width="2560" height="1441" alt="photo_2026-07-08_08-42-58" src="https://github.com/user-attachments/assets/227b0e9d-c2b0-43bd-90a1-b880e04233d8" />
 
 **Pinagem efetiva no firmware** (`esp32/esp32.ino`):
