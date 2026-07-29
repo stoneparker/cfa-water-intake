@@ -30,7 +30,7 @@ O dispositivo desenvolvido ficaria acoplado à base da garrafa para acompanhamen
 
 Em pesquisa de mercado foram encontradas garrafas inteiras com esse mecanismo a preço bastante elevado, e o [Ulla](https://www.ulla.io), um gadget simples que detecta o movimento da garrafa para criar alertas e não se conecta com nenhum sistema. A proposta do dispositivo a ser desenvolvido, então, se diferencia ao possibilitar o acoplamento a qualquer garrafa através de uma base removível, além da integração com o aplicativo.
 
-<img width="1012" height="927" alt="photo_2026-07-08_08-43-26" src="https://github.com/user-attachments/assets/83020b5a-d50e-44c6-866c-25c9050d9312" />
+<img width="500" alt="photo_2026-07-08_08-43-26" src="https://github.com/user-attachments/assets/83020b5a-d50e-44c6-866c-25c9050d9312" />
 
 ### 1.3 A premissa física
 
@@ -45,8 +45,6 @@ delta [g] = referenceWeight - current      →  enviado como amount_ml
 ---
 
 ## 2. Componentes utilizados
-
-<img width="1280" height="721" alt="photo_2026-07-08_08-43-05" src="https://github.com/user-attachments/assets/caa22635-5c42-435e-922f-93c0be681b8c" />
 
 ### 2.1 Dispositivo
 
@@ -76,7 +74,6 @@ delta [g] = referenceWeight - current      →  enviado como amount_ml
 | Verde    | A+ | Sinal positivo do canal A |
 
 > Inicialmente foi realizada uma tentativa de uso utilizando uma célula de carga de 3 fios, porém essa é uma célula "meia ponte" que necessita de outras em conjunto. A alteração para a célula de 4 fios permitiu o uso de uma célula única para capturar todos os sinais necessários pelo ESP32.
-<img width="2560" height="1441" alt="photo_2026-07-08_08-42-58" src="https://github.com/user-attachments/assets/227b0e9d-c2b0-43bd-90a1-b880e04233d8" />
 
 **Pinagem efetiva no firmware** (`esp32/esp32.ino`):
 
@@ -94,22 +91,26 @@ O display físico é de 72×40 px dentro de um controlador SSD1306 de 128×64, d
 * Protoboard (para testes iniciais)
 * Kit de Ferro de Solda 60W com Estanho
 * Base de silicone de garrafa para acoplamento final
+* Placas de MDF perfurado
+* Parafusos, brocas, arruelas e cola quente para montagem/posicionamento das placas de MDF
 
 ### 2.3 Montagem mecânica
 
 A célula de carga **só mede corretamente se for montada em balanço** (*cantilever*): uma extremidade fixa rigidamente à base e a outra livre, recebendo a carga. A seta gravada no corpo da célula indica o sentido da força.
 
-```
-        garrafa
-          ↓ ↓ ↓
-    ┌───────────────┐  ← plataforma superior (recebe a carga)
-    │               │
-    ╞═══════════════╡  ← célula de carga: extremidade esquerda parafusada,
-    │               │     extremidade direita livre → a barra flexiona
-    └───────────────┘  ← base fixa (base de silicone da garrafa)
-```
+<img width="300" alt="photo_2026-07-29_10-07-26" src="https://github.com/user-attachments/assets/f3bf8a89-52c1-4d7e-86e4-4a4942de7af5" />
+<img width="320" alt="photo_2026-07-29_10-07-31" src="https://github.com/user-attachments/assets/dbbbb21f-af9b-4d28-9449-105404498f31" />
 
-Se as duas extremidades forem parafusadas na mesma superfície rígida, a barra não flexiona, os *strain gauges* não deformam e a leitura fica praticamente constante.
+Se as duas extremidades forem parafusadas na mesma superfície rígida, a barra não flexiona, os *strain gauges* não deformam e a leitura fica praticamente constante. No projeto, a base da célula de carga foi feita utilizando MDF perfurado, com brocas, arruelas e cola quente para montagem/posicionamento das placas.
+
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/6734aca7-2665-4c09-9b61-2a8e338391f4" />
+
+### 2.3 Montagem na base de silicone
+Com a base em MDF da célula de carga, os fios foram postos em volta da célula, com o posicionamento das placas (HX711 e ESP32) nos espaços entre os dois MDFs, deixando o topo livre para posicionamento da garrafa.
+
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/ee66a883-06d2-4b7a-9c47-7f151b041a16" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/9e118cef-5751-437e-9c7e-5537b7f50207" />
+<img width="200" alt="image" src="https://github.com/user-attachments/assets/9d5bd173-07c6-4b73-971d-e71017e68ca2" />
 
 ---
 
@@ -227,7 +228,7 @@ Três decisões de projeto ficam visíveis nessa ordem:
 - **A referência é lida depois do Wi-Fi.** `connectWifi()` bloqueia por até 15 s (30 × 500 ms) e é justamente nessa janela que a garrafa deve ser posicionada. Se o Wi-Fi falhar, o boot continua mesmo assim exibindo `"WiFi FALHOU"`, e a reconexão é tentada de novo a cada envio.
 - **`get_units(20)` na referência, `get_units(5)` no laço.** Vinte amostras dão uma referência bem mais firme; cinco mantêm o laço responsivo. É uma troca deliberada entre precisão e latência.
 
-### 6.5 A máquina de três estados
+### 6.4 A máquina de três estados
 
 O firmware **não** faz uma medição periódica cega, mas tenta modelar o gesto humano de beber água como um ciclo de três fases e só registra quando o ciclo se completa:
 
@@ -257,7 +258,7 @@ else                                                stableCount = 0;
 lastReading = current;
 ```
 
-### 6.6 A decisão final
+### 6.5 A decisão final
 
 Quando a estabilidade é confirmada:
 
@@ -651,6 +652,6 @@ npm start
 
 ## 15. Principais dificuldades
 - **Escolha da célula de carga:** um grande erro cometido no início do desenvolvimento foi a tentativa de utilização de uma célula de carga de 3 fios (falta de pesquisa, peguei a primeira que apareceu no Mercado Livre). Fiquei um tempo tentando regular achando que poderia ser a conexão sem solda, porém jamais funcionaria corretamente sem célular idênticas complementares, ou uma célula completa, como a de 4 fios utilizada por fim.
-- **Solda:** a troca da célula de carga exigiu refazer a solda, procedimento que tentei fazer de forma autônoma e acabei tendo uma série de dificuldades, gerando o saldo de 1 ferro de solda queimado, uma placa HX711 levemente carbonizada, e alguns bugs iniciais na pesagem devido aos fios se encostando indiretamente.
-- **Base da célula de carga:** o funcionamento adequado exige uma base estável, concentrando o peso em uma das pontas. Foi especialmente difícil fazer uma base pequena para caber dentro da base de silicone que fosse suficiente estável para as medições, além [do topo] suportar o peso e tamanho da garrafa em si. O MDF perfurado, combinado com algumas arruelas e brochas dos parafusos, e alguns pontos de cola quente, fizeram o seu trabalho, mas a base ainda ficou levemente instável.
+- **Solda:** a troca da célula de carga exigiu refazer a solda, procedimento que tentei fazer de forma autônoma e acabei tendo uma série de dificuldades, gerando o saldo de 1 ferro de solda queimado, uma placa HX711 levemente carbonizada, e alguns bugs iniciais na pesagem devido aos fios se encostando indiretamente. A solda ruim também fez com que os fios se soltasse algumas vezes durante a montagem, exigindo ajustes. Por segurança, comprei uma HX711 adicional, porém o uso (felizmente) não foi necessário.
+- **Base da célula de carga:** o funcionamento adequado exige uma base estável, concentrando o peso em uma das pontas. Foi especialmente difícil fazer uma base pequena para caber dentro da base de silicone que fosse suficiente estável para as medições, além do topo suportar o peso e tamanho da garrafa em si. O MDF perfurado, combinado com algumas arruelas e brochas dos parafusos, e alguns pontos de cola quente, fizeram o seu trabalho, mas a base ainda ficou levemente instável.
 - **Alimentação móvel:** a base de silicone dispõe de espaço limitado, dificultando a acomodação dos componentes principais. Foram feitas algumas pesquisas de mini-baterias, porém não encontrei nada pequeno o suficiente para caber na base, ao menos com implementação simples para o prazo de entrega. Atualmente, a alimentação do dispositivo é feita por um cabo USB que sai da base de silicone.
