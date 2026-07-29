@@ -655,3 +655,17 @@ npm start
 - **Solda:** a troca da célula de carga exigiu refazer a solda, procedimento que tentei fazer de forma autônoma e acabei tendo uma série de dificuldades, gerando o saldo de 1 ferro de solda queimado, uma placa HX711 levemente carbonizada, e alguns bugs iniciais na pesagem devido aos fios se encostando indiretamente. A solda ruim também fez com que os fios se soltasse algumas vezes durante a montagem, exigindo ajustes. Por segurança, comprei uma HX711 adicional, porém o uso (felizmente) não foi necessário.
 - **Base da célula de carga:** o funcionamento adequado exige uma base estável, concentrando o peso em uma das pontas. Foi especialmente difícil fazer uma base pequena para caber dentro da base de silicone que fosse suficiente estável para as medições, além do topo suportar o peso e tamanho da garrafa em si. O MDF perfurado, combinado com algumas arruelas e brochas dos parafusos, e alguns pontos de cola quente, fizeram o seu trabalho, mas a base ainda ficou levemente instável.
 - **Alimentação móvel:** a base de silicone dispõe de espaço limitado, dificultando a acomodação dos componentes principais. Foram feitas algumas pesquisas de mini-baterias, porém não encontrei nada pequeno o suficiente para caber na base, ao menos com implementação simples para o prazo de entrega. Atualmente, a alimentação do dispositivo é feita por um cabo USB que sai da base de silicone.
+
+---
+
+# Parte VI - Referências
+
+- HX711 with a Four Wire Load Cell and Arduino | Step by Step Guide: https://youtu.be/sxzoAGf1kOo?si=VKuG_R9U3xArl72s
+- Instalação células de carga, capacidade, planos de apoio, células de carga single-point - https://www.youtube.com/watch?v=kZoNuNDuyjw
+- S06E38 - Célula de carga com Arduino (balança) - https://youtu.be/Ehk7Zh043Cw?si=hhXxBxudLc8VGfH5  
+- COMO UTILIZAR CÉLULA DE CARGA COM ARDUINO - https://youtu.be/0btGnLHdv8I?si=NJP91hFMSMxPr_kS 
+- WiFi | Arduino Documentation - https://docs.arduino.cc/libraries/wifi/ 
+- HX711 - https://github.com/bogde/hx711 
+- Load Cell & HX711 Module - https://justdoelectronics.com/load-cell-hx711-module/ 
+= U8glib V2 library for Arduino - https://github.com/olikraus/u8g2/wiki 
+
